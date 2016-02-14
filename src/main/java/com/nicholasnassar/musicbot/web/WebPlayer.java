@@ -1,26 +1,19 @@
 package com.nicholasnassar.musicbot.web;
 
+import com.google.gson.JsonObject;
 import com.nicholasnassar.musicbot.MusicBot;
 import spark.ModelAndView;
+import spark.Spark;
 import spark.template.freemarker.FreeMarkerEngine;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static spark.Spark.*;
 
 public class WebPlayer {
-    private final Map<String, String> indexAttributes;
-
     public WebPlayer(MusicBot bot, int port) throws Exception {
         port(port);
         staticFileLocation("web");
 
-        indexAttributes = new HashMap<>();
-
-        indexAttributes.put("DURATION", "<> / <>");
-
-        get("/", (req, res) -> new ModelAndView(indexAttributes, "index.html"), new FreeMarkerEngine());
+        get("/", (req, res) -> new ModelAndView(null, "index.html"), new FreeMarkerEngine());
         post("/", (request, response) -> {
             if (request.queryParams("pause") != null) {
                 if (bot.isPlaying()) {
@@ -29,13 +22,13 @@ public class WebPlayer {
                     bot.play();
                 }
 
-                return new ModelAndView(indexAttributes, "index.html");
+                return new ModelAndView(null, "index.html");
             }
 
             if (request.queryParams("stop") != null && bot.isPlaying()) {
                 bot.stop();
 
-                return new ModelAndView(indexAttributes, "index.html");
+                return new ModelAndView(null, "index.html");
             }
 
             String name = request.queryParams("url");
@@ -59,16 +52,26 @@ public class WebPlayer {
                 }
             }
 
-            return new ModelAndView(indexAttributes, "index.html");
+            return new ModelAndView(null, "index.html");
         }, new FreeMarkerEngine());
+
+        get("/play-status", (req, res) -> {
+            res.type("text/event-stream;charset=UTF-8");
+            res.header("Cache-Control", "no-cache");
+
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("title", bot.getTime());
+            jsonObject.addProperty("time", bot.getTime());
+
+            String output = "retry: 1000\n";
+
+            output += "data: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
+
+            return output;
+        });
     }
 
-    public void update(MusicBot bot) {
-        indexAttributes.remove("NOW_PLAYING");
-        indexAttributes.put("NOW_PLAYING", "Now Playing: " + bot.getTitle());
-    }
-
-    public void stop() throws Exception {
-        stop();
+    public void stop() {
+        Spark.stop();
     }
 }

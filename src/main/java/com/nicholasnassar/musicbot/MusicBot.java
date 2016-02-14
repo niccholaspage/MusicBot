@@ -26,7 +26,7 @@ public class MusicBot {
 
     private boolean paused;
 
-    private WebPlayer webPlayer;
+    private boolean stopped;
 
     private Browser browser;
 
@@ -40,6 +40,10 @@ public class MusicBot {
         queue = new Queue();
 
         player = null;
+
+        paused = false;
+
+        stopped = true;
 
         playingBrowser = false;
 
@@ -63,11 +67,20 @@ public class MusicBot {
 
         browser = new Browser();
 
-        browser.addTitleListener(titleEvent -> {
-            title = browser.getTitle();
+        /* Test browser view for debugging
+         BrowserView view = new BrowserView(browser);
 
-            webPlayer.update(this);
-        });
+         JFrame frame = new JFrame();
+
+         frame.add(view);
+
+         frame.setSize(640, 480);
+         frame.setVisible(true);
+         */
+
+        browser.addTitleListener(titleEvent -> title = browser.getTitle());
+
+        WebPlayer webPlayer;
 
         try {
             webPlayer = new WebPlayer(this, 8080);
@@ -76,8 +89,6 @@ public class MusicBot {
 
             return;
         }
-
-        webPlayer.update(this);
 
         Timer timer = new Timer();
 
@@ -91,14 +102,13 @@ public class MusicBot {
 
                     updateNextTime = false;
                 } else if (playingBrowser) {
-                    DOMDocument document = browser.getDocument();
-                    List<DOMElement> currentTime = document.findElements(By.className("ytp-time-current"));
-                    List<DOMElement> duration = document.findElements(By.className("ytp-time-duration"));
+                    if (getCurrentTimeYT().equals(getDurationTimeYT())) {
+                        updateNextTime = true;
+                    }
 
-                    if (!currentTime.isEmpty() && !duration.isEmpty())
-                        if (currentTime.get(0).getTextContent().equals(duration.get(0).getTextContent())) {
-                            updateNextTime = true;
-                        }
+                    DOMElement element = browser.getDocument().findElement(By.xpath("/div[@aria-label]='YouTube Video Player'"));
+
+                    element.setAttribute("class", "html5-video-player ad-created endscreen-created captions-created");
                 }
             }
         }, 0, 1000);
@@ -166,12 +176,34 @@ public class MusicBot {
         scanner.close();
     }
 
+    private String getCurrentTimeYT() {
+        DOMElement element = browser.getDocument().findElement(By.className("ytp-time-current"));
+
+        if (element == null) {
+            return "N/A";
+        }
+
+        return element.getTextContent();
+    }
+
+    private String getDurationTimeYT() {
+        DOMElement element = browser.getDocument().findElement(By.className("ytp-time-duration"));
+
+        if (element == null) {
+            return "N/A";
+        }
+
+        return element.getTextContent();
+    }
+
     public void log(String message) {
         System.out.println(message);
     }
 
     private void playYoutubeLink(String url) {
-        browser.loadURL(url);
+        String videoId = url.substring(url.lastIndexOf("=") + 1);
+
+        browser.loadURL("https://www.youtube.com/embed/" + videoId + "?autoplay=1&autohide=0");
 
         playingBrowser = true;
     }
@@ -185,12 +217,14 @@ public class MusicBot {
             playClip(new File(musicFolder.getPath() + File.separator + name));
 
             title = name;
-
-            webPlayer.update(this);
         }
+
+        paused = false;
+
+        stopped = false;
     }
 
-    public void playClip(File file) {
+    private void playClip(File file) {
         paused = false;
 
         try {
@@ -292,7 +326,7 @@ public class MusicBot {
 
         title = "Nothing";
 
-        webPlayer.update(this);
+        stopped = true;
     }
 
     public boolean isPlaying() {
@@ -309,5 +343,15 @@ public class MusicBot {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getTime() {
+        if (stopped) {
+            return "- / -";
+        } else if (playingBrowser) {
+            return getCurrentTimeYT() + " / " + getDurationTimeYT();
+        } else {
+            return "Not Implemented Yet (Normal MP3 files)";
+        }
     }
 }
