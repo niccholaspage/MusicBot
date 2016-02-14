@@ -12,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 
 
@@ -63,6 +65,30 @@ public class MusicBot {
             e.printStackTrace();
             return;
         }
+
+        Timer timer = new Timer();
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            private boolean updateNextTime;
+
+            @Override
+            public void run() {
+                if (updateNextTime) {
+                    update();
+
+                    updateNextTime = false;
+                } else if (playingBrowser) {
+                    DOMDocument document = browser.getDocument();
+                    List<DOMElement> currentTime = document.findElements(By.className("ytp-time-current"));
+                    List<DOMElement> duration = document.findElements(By.className("ytp-time-duration"));
+
+                    if (!currentTime.isEmpty() && !duration.isEmpty())
+                        if (currentTime.get(0).getTextContent().equals(duration.get(0).getTextContent())) {
+                            updateNextTime = true;
+                        }
+                }
+            }
+        }, 0, 1000);
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
@@ -119,6 +145,10 @@ public class MusicBot {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        timer.cancel();
+
+        timer.purge();
 
         scanner.close();
     }
