@@ -2,17 +2,21 @@ package com.nicholasnassar.musicbot;
 
 import com.nicholasnassar.musicbot.web.WebPlayer;
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.LoggerProvider;
+import com.teamdev.jxbrowser.chromium.dom.By;
+import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
+import com.teamdev.jxbrowser.chromium.dom.DOMElement;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
 
 
 public class MusicBot {
     private final File musicFolder;
-
-    private final File cacheFolder;
 
     private final Queue queue;
 
@@ -22,35 +26,27 @@ public class MusicBot {
 
     private Browser browser;
 
+    private boolean playingBrowser;
+
     public MusicBot() {
         musicFolder = new File("music");
-
-        cacheFolder = new File("cache");
 
         queue = new Queue();
 
         player = null;
+
+        playingBrowser = false;
     }
 
     public void start() {
+        LoggerProvider.getBrowserLogger().setLevel(Level.SEVERE);
+        LoggerProvider.getIPCLogger().setLevel(Level.SEVERE);
+        LoggerProvider.getChromiumProcessLogger().setLevel(Level.SEVERE);
+
         if (!musicFolder.exists() && !musicFolder.mkdir()) {
             log("Couldn't make music folder.");
 
             return;
-        }
-
-        if (!cacheFolder.exists() && !cacheFolder.mkdir()) {
-            log("Couldn't make cache folder.");
-
-            return;
-        } else {
-            File youtubeFolder = new File(cacheFolder, "youtube");
-
-            if (!youtubeFolder.exists() && !youtubeFolder.mkdir()) {
-                log("Couldn't make youtube folder.");
-
-                return;
-            }
         }
 
         log("MusicBot started!");
@@ -132,22 +128,9 @@ public class MusicBot {
     }
 
     private void playYoutubeLink(String url) {
-        /*String videoName = url.substring(url.indexOf("v=") + 2);
-        try {
-            File file = new File(cacheFolder, "youtube" + File.separator + videoName + ".mp3");
-            if (!file.exists()) {
-                //URL website = new URL("http://youtubeinmp3.com/fetch/?video=" + url);
-                //ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                //FileOutputStream fos = new FileOutputStream(file);
-                //fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                VGet video = new VGet(new URL(url), file);
-                video.download();
-            }
-            playClip(file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
         browser.loadURL(url);
+
+        playingBrowser = true;
     }
 
     public void playClip(String name) {
@@ -156,6 +139,8 @@ public class MusicBot {
 
             return;
         }
+
+        playingBrowser = false;
 
         playClip(new File(musicFolder.getPath() + File.separator + name));
     }
@@ -205,38 +190,59 @@ public class MusicBot {
     }
 
     public void play() {
-        if (player != null) {
-            paused = false;
+        if (!playingBrowser) {
+            if (player != null) {
+                paused = false;
 
-            player.resume();
+                player.resume();
 
-            log("Resumed!");
+                log("Resumed!");
+            }
+        } else {
+            togglePlayButton();
         }
     }
 
     public void pause() {
-        if (player != null) {
-            paused = true;
+        if (!playingBrowser) {
+            if (player != null) {
+                paused = true;
 
-            player.pause();
+                player.pause();
 
-            log("Paused!");
+                log("Paused!");
+            }
+        } else {
+            togglePlayButton();
         }
     }
 
+    private void togglePlayButton() {
+        DOMDocument document = browser.getDocument();
+        List<DOMElement> elements = document.findElements(By.className("ytp-play-button ytp-button"));
+        elements.get(0).click();
+        paused = !paused;
+    }
+
     public void stop() {
-        if (player != null) {
-            paused = false;
+        if (!playingBrowser) {
+            if (player != null) {
+                paused = false;
 
-            queue.reset();
+                queue.reset();
 
-            player.stop();
+                player.stop();
 
-            player.close();
+                player.close();
 
-            player = null;
+                player = null;
 
-            log("Stopped!");
+                log("Stopped!");
+            }
+        } else {
+            browser.loadHTML("<html><html>");
+
+            playingBrowser = false;
         }
     }
 
