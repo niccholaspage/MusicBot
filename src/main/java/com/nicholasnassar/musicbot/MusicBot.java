@@ -26,9 +26,13 @@ public class MusicBot {
 
     private boolean paused;
 
+    private WebPlayer webPlayer;
+
     private Browser browser;
 
     private boolean playingBrowser;
+
+    private String title;
 
     public MusicBot() {
         musicFolder = new File("music");
@@ -38,6 +42,8 @@ public class MusicBot {
         player = null;
 
         playingBrowser = false;
+
+        title = "Nothing";
     }
 
     public void start() {
@@ -55,16 +61,23 @@ public class MusicBot {
 
         Scanner scanner = new Scanner(System.in);
 
-        WebPlayer webPlayer;
-
         browser = new Browser();
+
+        browser.addTitleListener(titleEvent -> {
+            title = browser.getTitle();
+
+            webPlayer.update(this);
+        });
 
         try {
             webPlayer = new WebPlayer(this, 8080);
         } catch (Exception e) {
             e.printStackTrace();
+
             return;
         }
+
+        webPlayer.update(this);
 
         Timer timer = new Timer();
 
@@ -166,13 +179,15 @@ public class MusicBot {
     public void playClip(String name) {
         if (name.toLowerCase().contains("youtube.com")) {
             playYoutubeLink(name);
+        } else {
+            playingBrowser = false;
 
-            return;
+            playClip(new File(musicFolder.getPath() + File.separator + name));
+
+            title = name;
+
+            webPlayer.update(this);
         }
-
-        playingBrowser = false;
-
-        playClip(new File(musicFolder.getPath() + File.separator + name));
     }
 
     public void playClip(File file) {
@@ -274,6 +289,10 @@ public class MusicBot {
 
             playingBrowser = false;
         }
+
+        title = "Nothing";
+
+        webPlayer.update(this);
     }
 
     public boolean isPlaying() {
@@ -286,5 +305,9 @@ public class MusicBot {
 
     public Queue getQueue() {
         return queue;
+    }
+
+    public String getTitle() {
+        return title;
     }
 }

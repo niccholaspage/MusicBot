@@ -2,19 +2,26 @@ package com.nicholasnassar.musicbot.web;
 
 import com.nicholasnassar.musicbot.MusicBot;
 import spark.ModelAndView;
-import spark.Spark;
 import spark.template.freemarker.FreeMarkerEngine;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static spark.Spark.*;
+
 public class WebPlayer {
+    private final Map<String, String> indexAttributes;
+
     public WebPlayer(MusicBot bot, int port) throws Exception {
-        Spark.port(port);
-        Spark.staticFileLocation("web");
-        Map<String, String> map = new HashMap<>();
-        Spark.get("/", (req, res) -> new ModelAndView(map, "index.html"), new FreeMarkerEngine());
-        Spark.post("/", (request, response) -> {
+        port(port);
+        staticFileLocation("web");
+
+        indexAttributes = new HashMap<>();
+
+        indexAttributes.put("DURATION", "<> / <>");
+
+        get("/", (req, res) -> new ModelAndView(indexAttributes, "index.html"), new FreeMarkerEngine());
+        post("/", (request, response) -> {
             if (request.queryParams("pause") != null) {
                 if (bot.isPlaying()) {
                     bot.pause();
@@ -22,13 +29,13 @@ public class WebPlayer {
                     bot.play();
                 }
 
-                return new ModelAndView(map, "index.html");
+                return new ModelAndView(indexAttributes, "index.html");
             }
 
             if (request.queryParams("stop") != null && bot.isPlaying()) {
                 bot.stop();
 
-                return new ModelAndView(map, "index.html");
+                return new ModelAndView(indexAttributes, "index.html");
             }
 
             String name = request.queryParams("url");
@@ -52,12 +59,16 @@ public class WebPlayer {
                 }
             }
 
-            return new ModelAndView(map, "index.html");
+            return new ModelAndView(indexAttributes, "index.html");
         }, new FreeMarkerEngine());
+    }
 
+    public void update(MusicBot bot) {
+        indexAttributes.remove("NOW_PLAYING");
+        indexAttributes.put("NOW_PLAYING", "Now Playing: " + bot.getTitle());
     }
 
     public void stop() throws Exception {
-        Spark.stop();
+        stop();
     }
 }
