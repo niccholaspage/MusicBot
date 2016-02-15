@@ -63,11 +63,7 @@ public class WebPlayer {
             jsonObject.addProperty("title", bot.getTime());
             jsonObject.addProperty("time", bot.getTime());
 
-            String output = "retry: 1000\n";
-
-            output += "data: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
-
-            return output;
+            return "retry: 1000\ndata: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
         });
     }
 
