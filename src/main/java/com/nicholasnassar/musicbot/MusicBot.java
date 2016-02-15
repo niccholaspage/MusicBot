@@ -78,7 +78,11 @@ public class MusicBot {
         frame.setSize(640, 480);
         frame.setVisible(true);*/
 
-        browser.addTitleListener(titleEvent -> title = browser.getTitle());
+        browser.addTitleListener(titleEvent -> {
+            title = browser.getTitle();
+
+            title = title.substring(0, title.lastIndexOf("- "));
+        });
 
         WebPlayer webPlayer;
 
