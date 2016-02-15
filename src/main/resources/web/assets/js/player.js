@@ -8,3 +8,21 @@ if(typeof(EventSource) !== "undefined") {
 } else {
     document.getElementById("nowplaying").innerHTML = "Your browser doesn't support server-sent events.. Get a new one?";
 }
+
+function play() {
+    $.post("play", {name: document.getElementById("url").value});
+    document.getElementById("url").value = "";
+}
+
+function addToQueue() {
+    $.post("addtoqueue", {name: document.getElementById("url").value});
+    document.getElementById("url").value = "";
+}
+
+function pause() {
+    $.get("pause");
+}
+
+function stop() {
+    $.get("stop");
+}

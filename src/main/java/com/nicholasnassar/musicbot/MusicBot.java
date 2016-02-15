@@ -270,6 +270,8 @@ public class MusicBot {
             playClip(queue.getCurrentRequest());
 
             queue.removeCurrentRequest();
+        } else {
+            stop();
         }
     }
 
@@ -311,8 +313,6 @@ public class MusicBot {
     public void stop() {
         if (!playingBrowser) {
             if (player != null) {
-                paused = false;
-
                 queue.reset();
 
                 player.stop();
@@ -328,6 +328,8 @@ public class MusicBot {
 
             playingBrowser = false;
         }
+
+        paused = false;
 
         title = "Nothing";
 

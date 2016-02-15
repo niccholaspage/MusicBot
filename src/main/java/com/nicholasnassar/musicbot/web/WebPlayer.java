@@ -14,46 +14,54 @@ public class WebPlayer {
         staticFileLocation("web");
 
         get("/", (req, res) -> new ModelAndView(null, "index.html"), new FreeMarkerEngine());
-        post("/", (request, response) -> {
-            if (request.queryParams("pause") != null) {
-                if (bot.isPlaying()) {
-                    bot.pause();
-                } else {
-                    bot.play();
-                }
 
-                return new ModelAndView(null, "index.html");
-            }
+        post("/play", (req, res) -> {
+            String name = req.queryParams("name");
 
-            if (request.queryParams("stop") != null && bot.isPlaying()) {
-                bot.stop();
-
-                return new ModelAndView(null, "index.html");
-            }
-
-            String name = request.queryParams("url");
             if (name != null && !name.isEmpty()) {
-                if (request.queryParams("play") != null) {
-                    if (bot.musicExists(name)) {
-                        bot.stop();
+                if (bot.musicExists(name)) {
+                    bot.stop();
 
-                        bot.getQueue().reset();
+                    bot.getQueue().reset();
 
-                        bot.playClip(name);
-                    } else {
-                        bot.log(name + " doesn't exist!");
-                    }
+                    bot.playClip(name);
                 } else {
-                    if (bot.musicExists(name)) {
-                        bot.getQueue().addRequest(name);
-                    } else {
-                        bot.log(name + " doesn't exist!");
-                    }
+                    bot.log(name + " doesn't exist!");
                 }
             }
 
-            return new ModelAndView(null, "index.html");
-        }, new FreeMarkerEngine());
+            return "";
+        });
+
+        post("/addtoqueue", (req, res) -> {
+            String name = req.queryParams("name");
+
+            if (name != null && !name.isEmpty()) {
+                if (bot.musicExists(name)) {
+                    bot.getQueue().addRequest(name);
+                } else {
+                    bot.log(name + " doesn't exist!");
+                }
+            }
+
+            return "";
+        });
+
+        get("/pause", (req, res) -> {
+            if (bot.isPlaying()) {
+                bot.pause();
+            } else {
+                bot.play();
+            }
+
+            return "";
+        });
+
+        get("/stop", (req, res) -> {
+            bot.stop();
+
+            return "";
+        });
 
         get("/play-status", (req, res) -> {
             res.type("text/event-stream;charset=UTF-8");
