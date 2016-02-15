@@ -22,7 +22,7 @@ dependency-reduced-pom.xml
 /dist
 /manifest.mf
 
-# Music, cache, and license files
+# Music and license files
 /music
 /cache
 license.jar
