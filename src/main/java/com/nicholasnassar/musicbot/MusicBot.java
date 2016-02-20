@@ -8,9 +8,8 @@ import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
+import java.net.URL;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
@@ -140,7 +139,7 @@ public class MusicBot {
                     String name = split[1];
 
                     if (musicExists(name)) {
-                        queue.addRequest(name);
+                        addToQueue(name);
                     } else {
                         log(name + " doesn't exist!");
                     }
@@ -214,7 +213,7 @@ public class MusicBot {
     }
 
     public void playClip(String name) {
-        if (name.toLowerCase().contains("youtube.com")) {
+        if (isPlayableLink(name)) {
             playYoutubeLink(name);
         } else {
             playingBrowser = false;
@@ -227,6 +226,10 @@ public class MusicBot {
         paused = false;
 
         stopped = false;
+    }
+
+    private boolean isPlayableLink(String name) {
+        return name.toLowerCase().contains("youtube.com");
     }
 
     private void playClip(File file) {
@@ -265,9 +268,19 @@ public class MusicBot {
         log("Couldn't play " + file.getName());
     }
 
+    public void addToQueue(String name) {
+        queue.addRequest(new Request(name, name, "Fetching..."));
+
+        new Thread() {
+            public void run() {
+
+            }
+        }.start();
+    }
+
     public void update() {
         if (queue.getCurrentRequest() != null) {
-            playClip(queue.getCurrentRequest());
+            playClip(queue.getCurrentRequest().getNameOrURL());
 
             queue.removeCurrentRequest();
         } else {
@@ -359,6 +372,24 @@ public class MusicBot {
             return formatTime(getCurrentTimeYT()) + " / " + formatTime(getDurationTimeYT());
         } else {
             return "Not Implemented Yet (Normal MP3 files)";
+        }
+    }
+
+    public String getStringFromURL(String url) {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
+
+            String line = "";
+
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null)
+                line += inputLine;
+            in.close();
+
+            return line;
+        } catch (Exception e) {
+            return null;
         }
     }
 }

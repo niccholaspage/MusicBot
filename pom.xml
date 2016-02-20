@@ -73,8 +73,27 @@
         </dependency>
         <dependency>
             <groupId>com.teamdev.jxbrowser</groupId>
-            <artifactId>jxbrowser-cross-platform</artifactId>
+            <artifactId>jxbrowser-win</artifactId>
             <version>6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser-mac</artifactId>
+            <version>6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser-linux32</artifactId>
+            <version>6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser-linux64</artifactId>
+            <version>6.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

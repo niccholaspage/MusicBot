@@ -38,7 +38,7 @@ public class WebPlayer {
 
             if (name != null && !name.isEmpty()) {
                 if (bot.musicExists(name)) {
-                    bot.getQueue().addRequest(name);
+                    bot.addToQueue(name);
                 } else {
                     bot.log(name + " doesn't exist!");
                 }
@@ -67,11 +67,16 @@ public class WebPlayer {
             res.type("text/event-stream;charset=UTF-8");
             res.header("Cache-Control", "no-cache");
 
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("title", bot.getTime());
-            jsonObject.addProperty("time", bot.getTime());
-
             return "retry: 1000\ndata: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
+        });
+
+        get("/queue", (req, res) -> {
+            res.type("text/event-stream;charset=UTF-8");
+            res.header("Cache-Control", "no-cache");
+
+            String queue = "retry: 1000\n";
+
+            return queue;
         });
     }
 

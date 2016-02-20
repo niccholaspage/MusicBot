@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Queue {
-    private final List<String> requests;
+    private final List<Request> requests;
 
     public Queue() {
         requests = new ArrayList<>();
     }
 
-    public synchronized void addRequest(String request) {
+    public synchronized void addRequest(Request request) {
         requests.add(request);
     }
 
-    public synchronized String getCurrentRequest() {
+    public synchronized Request getCurrentRequest() {
         if (requests.isEmpty()) {
             return null;
         }
