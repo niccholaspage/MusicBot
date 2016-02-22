@@ -7,6 +7,8 @@ import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
+import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
+import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 
 import java.io.*;
 import java.net.URL;
@@ -81,6 +83,15 @@ public class MusicBot {
             title = browser.getTitle();
 
             title = title.substring(0, title.lastIndexOf("- "));
+        });
+
+        browser.addLoadListener(new LoadAdapter() {
+            @Override
+            public void onStartLoadingFrame(StartLoadingEvent event) {
+                if (event.isMainFrame()) {
+                    browser.executeJavaScript("function skipVideoAd(){document.getElementsByClassName(\"videoAdUi\").length>0&&(document.getElementsByClassName(\"video-stream html5-main-video\")[0].src=\"\")}function hideOverlayAd(){var e=document.getElementsByClassName(\"ad-container ad-container-single-media-element-annotations\")[0];e&&\"none\"!==e.style.display&&(e.style.display=\"none\")}function clearAds(){skipVideoAd(),hideOverlayAd()}function DOMSTlistener(e){e.target.innerHTML.length>0&&clearAds()}function init(){var e=document.getElementsByClassName(\"video-ads\")[0];e&&(player.removeEventListener(\"DOMSubtreeModified\",init),e.addEventListener(\"DOMSubtreeModified\",DOMSTlistener))}var player=document.querySelector(\"#player\");/https?:\\/\\/(\\w*.)?youtube.com/i.test(window.location.href.toLowerCase())&&player.addEventListener(\"DOMSubtreeModified\",init);");
+                }
+            }
         });
 
         WebPlayer webPlayer;
@@ -195,7 +206,15 @@ public class MusicBot {
 
         int seconds = (int) time;
 
-        return seconds / 60 + ":" + (seconds < 10 ? "0" : "") + seconds % 60;
+        String output = seconds / 60 + ":";
+
+        if (seconds % 60 < 10) {
+            output += 0;
+        }
+
+        output += seconds % 60;
+
+        return output;
     }
 
     public void log(String message) {
@@ -203,11 +222,7 @@ public class MusicBot {
     }
 
     private void playYoutubeLink(String url) {
-        String videoId = url.substring(url.lastIndexOf("=") + 1);
-
-        browser.loadURL("https://www.youtube.com/embed/" + videoId + "?autoplay=1");
-
-        browser.getDocument().createElement("<style>.ytp-time-display {display: inline}</style>}");
+        browser.loadURL(url);
 
         playingBrowser = true;
     }
