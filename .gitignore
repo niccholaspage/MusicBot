@@ -22,10 +22,10 @@ dependency-reduced-pom.xml
 /dist
 /manifest.mf
 
-# Music and license files
+# Music, license, and login files
 /music
-/cache
 license.jar
+login.txt
 
 # Mac filesystem dust
 .DS_Store

@@ -22,6 +22,10 @@ public class Queue {
         return requests.get(0);
     }
 
+    public synchronized List<Request> getRequests() {
+        return requests;
+    }
+
     public synchronized void reset() {
         requests.clear();
     }

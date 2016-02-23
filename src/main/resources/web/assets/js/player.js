@@ -5,8 +5,13 @@ if(typeof(EventSource) !== "undefined") {
         document.getElementById("nowplaying").innerHTML = "Now Playing: " + obj.title;
         document.getElementById("time").innerHTML = obj.time;
     };
+    var queueSource = new EventSource('queue');
+    queueSource.onmessage = function(event) {
+        document.getElementById("queue").innerHTML = "Queue:<br>" + event.data;
+    }
 } else {
     document.getElementById("nowplaying").innerHTML = "Your browser doesn't support server-sent events.. Get a new one?";
+    document.getElementById("queue").innerHTML = "??";
 }
 
 function play() {

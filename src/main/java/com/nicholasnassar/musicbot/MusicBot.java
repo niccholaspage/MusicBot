@@ -7,12 +7,14 @@ import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
-import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
-import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
+import org.apache.commons.io.FileUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
-import java.io.*;
-import java.net.URL;
-import java.util.List;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -69,6 +71,54 @@ public class MusicBot {
 
         browser = new Browser();
 
+        File loginFile = new File("login.txt");
+
+        if (loginFile.exists()) {
+            try {
+                String[] loginDetails = FileUtils.readFileToString(loginFile).split(System.lineSeparator());
+
+                String username = loginDetails[0];
+
+                String password = loginDetails[1];
+
+                Browser.invokeAndWaitFinishLoadingMainFrame(browser, value -> {
+                    value.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fapp%3Ddesktop%26hl%3Den%26feature%3Dsign_in_button%26action_handle_signin%3Dtrue%26next%3D%252F&hl=en&passive=true#identifier");
+                });
+
+                DOMDocument document = browser.getDocument();
+
+                DOMElement element = document.findElement(By.name("Email"));
+
+                if (element != null) {
+                    element.setAttribute("value", username);
+
+                    element = document.findElement(By.name("signIn"));
+
+                    if (element != null) {
+                        element.click();
+
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        element = document.findElement(By.name("Passwd"));
+
+                        if (element != null) {
+                            element.setAttribute("value", password);
+
+                            element = document.findElement(By.name("signIn"));
+
+                            element.click();
+                        }
+                    }
+                }
+            } catch (IOException e) {
+
+            }
+        }
+
         // Test browser view for debugging
         /*BrowserView view = new BrowserView(browser);
 
@@ -80,18 +130,7 @@ public class MusicBot {
         frame.setVisible(true);*/
 
         browser.addTitleListener(titleEvent -> {
-            title = browser.getTitle();
-
-            title = title.substring(0, title.lastIndexOf("- "));
-        });
-
-        browser.addLoadListener(new LoadAdapter() {
-            @Override
-            public void onStartLoadingFrame(StartLoadingEvent event) {
-                if (event.isMainFrame()) {
-                    browser.executeJavaScript("function skipVideoAd(){document.getElementsByClassName(\"videoAdUi\").length>0&&(document.getElementsByClassName(\"video-stream html5-main-video\")[0].src=\"\")}function hideOverlayAd(){var e=document.getElementsByClassName(\"ad-container ad-container-single-media-element-annotations\")[0];e&&\"none\"!==e.style.display&&(e.style.display=\"none\")}function clearAds(){skipVideoAd(),hideOverlayAd()}function DOMSTlistener(e){e.target.innerHTML.length>0&&clearAds()}function init(){var e=document.getElementsByClassName(\"video-ads\")[0];e&&(player.removeEventListener(\"DOMSubtreeModified\",init),e.addEventListener(\"DOMSubtreeModified\",DOMSTlistener))}var player=document.querySelector(\"#player\");/https?:\\/\\/(\\w*.)?youtube.com/i.test(window.location.href.toLowerCase())&&player.addEventListener(\"DOMSubtreeModified\",init);");
-                }
-            }
+            title = fixTitle(browser.getTitle());
         });
 
         WebPlayer webPlayer;
@@ -110,6 +149,7 @@ public class MusicBot {
             @Override
             public void run() {
                 if (playingBrowser) {
+                    browser.executeJavaScriptAndReturnValue("document.querySelector('.html5-video-player').b.allowEmbed = true;");
                     double currentTime = getCurrentTimeYT();
                     if (currentTime != -1 && currentTime == getDurationTimeYT()) {
                         update();
@@ -284,11 +324,18 @@ public class MusicBot {
     }
 
     public void addToQueue(String name) {
-        queue.addRequest(new Request(name, name, "Fetching..."));
+        Request request = new Request(name, "Fetching Title", "Fetching Duration");
+
+        queue.addRequest(request);
 
         new Thread() {
             public void run() {
+                try {
+                    Document document = Jsoup.connect(request.getNameOrURL()).get();
 
+                    request.setTitle(fixTitle(document.title()));
+                } catch (IOException e) {
+                }
             }
         }.start();
     }
@@ -333,16 +380,18 @@ public class MusicBot {
 
     private void togglePlayButton() {
         DOMDocument document = browser.getDocument();
-        List<DOMElement> elements = document.findElements(By.className("ytp-play-button ytp-button"));
-        elements.get(0).click();
-        paused = !paused;
+
+        DOMElement element = document.findElement(By.className("ytp-play-button ytp-button"));
+
+        if (element != null) {
+            element.click();
+            paused = !paused;
+        }
     }
 
     public void stop() {
         if (!playingBrowser) {
             if (player != null) {
-                queue.reset();
-
                 player.stop();
 
                 player.close();
@@ -356,6 +405,8 @@ public class MusicBot {
 
             playingBrowser = false;
         }
+
+        queue.reset();
 
         paused = false;
 
@@ -390,21 +441,11 @@ public class MusicBot {
         }
     }
 
-    public String getStringFromURL(String url) {
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-
-            String line = "";
-
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null)
-                line += inputLine;
-            in.close();
-
-            return line;
-        } catch (Exception e) {
-            return null;
+    private String fixTitle(String title) {
+        if (title.contains("- ")) {
+            title = title.substring(0, title.lastIndexOf("- "));
         }
+
+        return title;
     }
 }

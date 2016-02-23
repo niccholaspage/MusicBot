@@ -1,7 +1,7 @@
 package com.nicholasnassar.musicbot.web;
 
-import com.google.gson.JsonObject;
 import com.nicholasnassar.musicbot.MusicBot;
+import com.nicholasnassar.musicbot.Request;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.freemarker.FreeMarkerEngine;
@@ -74,9 +74,17 @@ public class WebPlayer {
             res.type("text/event-stream;charset=UTF-8");
             res.header("Cache-Control", "no-cache");
 
-            String queue = "retry: 1000\n";
+            String queue = "retry: 1000\ndata:";
 
-            return queue;
+            if (bot.getQueue().getRequests().isEmpty()) {
+                queue += "Empty";
+            } else {
+                for (Request request : bot.getQueue().getRequests()) {
+                    queue += "<a href=\"" + request.getNameOrURL() + "\">" + request.getTitle() + "</a><br>";
+                }
+            }
+
+            return queue + "\n\n";
         });
     }
 
