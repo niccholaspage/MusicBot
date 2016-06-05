@@ -6,12 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.Wait;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +38,8 @@ public class MusicBot {
     public static MusicBot bot;
 
     private boolean autoplayFlipped;
+
+    private Timer timer;
 
     public MusicBot() {
         musicFolder = new File("music");
@@ -140,7 +138,7 @@ public class MusicBot {
             return;
         }
 
-        Timer timer = new Timer();
+        timer = new Timer();
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -149,6 +147,16 @@ public class MusicBot {
                     double currentTime = getCurrentTimeYT();
                     if (currentTime != -1 && currentTime >= getDurationTimeYT()) {
                         update();
+                    }
+
+                    if (browser.executeScript("return document.readyState").equals("complete")) {
+                        title = fixTitle(browser.getTitle());
+
+                        if (!autoplayFlipped) {
+                            browser.findElement(By.id("autoplay-checkbox")).click();
+
+                            autoplayFlipped = true;
+                        }
                     }
                 }
             }
@@ -259,20 +267,6 @@ public class MusicBot {
         browser.get(url);
 
         playingBrowser = true;
-
-        new Thread(() -> {
-            Wait<WebDriver> wait = new WebDriverWait(browser, 10);
-
-            wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
-
-            title = fixTitle(browser.getTitle());
-
-            if (!autoplayFlipped) {
-                browser.findElement(By.id("autoplay-checkbox")).click();
-
-                autoplayFlipped = true;
-            }
-        }).start();
     }
 
     public void playClip(String name) {
