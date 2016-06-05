@@ -60,9 +60,9 @@
             <version>2.3</version>
         </dependency>
         <dependency>
-            <groupId>com.machinepublishers</groupId>
-            <artifactId>jbrowserdriver</artifactId>
-            <version>[0.14.0, 2.0)</version>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>2.53.0</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>

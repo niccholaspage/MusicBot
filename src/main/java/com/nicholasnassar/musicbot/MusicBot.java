@@ -1,15 +1,17 @@
 package com.nicholasnassar.musicbot;
 
-import com.machinepublishers.jbrowserdriver.JBrowserDriver;
-import com.machinepublishers.jbrowserdriver.Settings;
-import com.machinepublishers.jbrowserdriver.Timezone;
 import com.nicholasnassar.musicbot.web.WebPlayer;
 import com.nicholasnassar.musicbot.web.WebSocketHandler;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +33,7 @@ public class MusicBot {
 
     private boolean stopped;
 
-    private JBrowserDriver browser;
+    private FirefoxDriver browser;
 
     private boolean playingBrowser;
 
@@ -68,7 +70,7 @@ public class MusicBot {
 
         Scanner scanner = new Scanner(System.in);
 
-        browser = new JBrowserDriver(Settings.builder().timezone(Timezone.AMERICA_NEWYORK).headless(false).blockAds(true).build());
+        browser = new FirefoxDriver();
 
         File loginFile = new File("login.txt");
 
@@ -253,6 +255,14 @@ public class MusicBot {
         browser.get(url);
 
         playingBrowser = true;
+
+        new Thread(() -> {
+            Wait<WebDriver> wait = new WebDriverWait(browser, 10);
+
+            wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
+
+            title = fixTitle(browser.getTitle());
+        }).start();
     }
 
     public void playClip(String name) {
@@ -361,6 +371,8 @@ public class MusicBot {
             playClip(queue.getCurrentRequest().getNameOrURL());
 
             queue.removeCurrentRequest();
+
+            WebSocketHandler.sendQueueUpdates();
         } else {
             stop();
         }
