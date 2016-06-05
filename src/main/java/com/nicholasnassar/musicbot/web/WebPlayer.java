@@ -17,7 +17,7 @@ public class WebPlayer {
     public WebPlayer(MusicBot bot, int port) throws Exception {
         port(port);
 
-        staticFileLocation("web");
+        staticFileLocation("/web");
 
         webSocket("/play-status", WebSocketHandler.class);
 
