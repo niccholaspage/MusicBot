@@ -52,6 +52,10 @@ public class WebSocketHandler {
     }
 
     public static void sendPlayingUpdate(Session session) {
+        if (!session.isOpen()) {
+            return;
+        }
+
         MusicBot bot = MusicBot.bot;
 
         try {
@@ -63,21 +67,21 @@ public class WebSocketHandler {
 
     public static void sendPlayingUpdates() {
         for (Session session : sessions) {
-            if (session.isOpen()) {
-                sendPlayingUpdate(session);
-            }
+            sendPlayingUpdate(session);
         }
     }
 
     public static void sendQueueUpdates() {
         for (Session session : sessions) {
-            if (session.isOpen()) {
-                sendQueue(session);
-            }
+            sendQueue(session);
         }
     }
 
     public static void sendQueue(Session session) {
+        if (!session.isOpen()) {
+            return;
+        }
+
         MusicBot bot = MusicBot.bot;
 
         String queue = "{\"queue\": \"";
