@@ -41,6 +41,8 @@ public class MusicBot {
 
     public static MusicBot bot;
 
+    private boolean autoplayFlipped;
+
     public MusicBot() {
         musicFolder = new File("music");
 
@@ -55,6 +57,8 @@ public class MusicBot {
         playingBrowser = false;
 
         title = "Nothing";
+
+        autoplayFlipped = false;
 
         bot = this;
     }
@@ -262,6 +266,12 @@ public class MusicBot {
             wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
 
             title = fixTitle(browser.getTitle());
+
+            if (!autoplayFlipped) {
+                browser.findElement(By.id("autoplay-checkbox")).click();
+
+                autoplayFlipped = true;
+            }
         }).start();
     }
 
