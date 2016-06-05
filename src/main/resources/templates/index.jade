@@ -1,5 +1,7 @@
 extends base.jade
 
+block scripts
+    script(src='/assets/js/player.js')
 block content
     p
         div#url-container.mdl-textfield.mdl-js-textfield
@@ -7,14 +9,14 @@ block content
             label.mdl-textfield__label(for='url') URL or File...
     div.mdl-grid
         div.mdl-layout-spacer
-        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Play
-        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Add to Queue
-        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Pause
-        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Stop
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent(onclick='play()') Play
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent(onclick='addToQueue()') Add to Queue
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent(onclick='pause()') Pause
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent(onclick='stop()') Stop
         div.mdl-layout-spacer
     p#nowplaying Now Playing: Nothing
     p#time - / -
     p#queue
-        |Queue:
+        | Queue:
         br
-        |Empty
+        | Empty

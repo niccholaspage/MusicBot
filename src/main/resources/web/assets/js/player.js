@@ -1,33 +1,61 @@
-if(typeof(EventSource) !== "undefined") {
-    var source = new EventSource('play-status');
-    source.onmessage = function(event) {
-        var obj = JSON.parse(event.data);
-        document.getElementById("nowplaying").innerHTML = "Now Playing: " + obj.title;
-        document.getElementById("time").innerHTML = obj.time;
-    };
-    var queueSource = new EventSource('queue');
-    queueSource.onmessage = function(event) {
-        document.getElementById("queue").innerHTML = "Queue:<br>" + event.data;
+var webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/play-status");
+
+webSocket.onopen = function (event) {
+
+};
+
+webSocket.onmessage = function (event) {
+    var obj = JSON.parse(event.data);
+
+    if (obj.title) {
+        document.getElementById("now_playing").innerHTML = "Now Playing: " + obj.title;
     }
-} else {
-    document.getElementById("nowplaying").innerHTML = "Your browser doesn't support server-sent events.. Get a new one?";
-    document.getElementById("queue").innerHTML = "??";
-}
+
+    if (obj.time) {
+        document.getElementById("time").innerHTML = obj.time;
+    }
+
+    if (obj.queue) {
+        document.getElementById("queue").innerHTML = "Queue:<br>" + obj.queue;
+    }
+};
+
+webSocket.onclose = function (event) {
+    //Do something.
+};
+
+window.addEventListener("load", function () {
+    var url = document.getElementById("url");
+
+    url.onkeydown = function (event) {
+        if (event.which == 13) {
+            play();
+        }
+    };
+});
 
 function play() {
-    $.post("play", {name: document.getElementById("url").value});
-    document.getElementById("url").value = "";
+    webSocket.send("play," + document.getElementById("url").value);
+
+    clearURL();
 }
 
 function addToQueue() {
-    $.post("addtoqueue", {name: document.getElementById("url").value});
+    webSocket.send("addtoqueue," + document.getElementById("url").value);
+
+    clearURL();
+}
+
+function clearURL() {
     document.getElementById("url").value = "";
+
+    document.getElementById('url-container').MaterialTextfield.checkDirty();
 }
 
 function pause() {
-    $.get("pause");
+    webSocket.send("pause");
 }
 
 function stop() {
-    $.get("stop");
+    webSocket.send("stop");
 }

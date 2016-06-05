@@ -36,6 +36,8 @@ public class MusicBot {
 
     private String title;
 
+    public static MusicBot bot;
+
     public MusicBot() {
         musicFolder = new File("music");
 
@@ -50,6 +52,8 @@ public class MusicBot {
         playingBrowser = false;
 
         title = "Nothing";
+
+        bot = this;
     }
 
     public void start() {
@@ -304,6 +308,30 @@ public class MusicBot {
         }
 
         log("Couldn't play " + file.getName());
+    }
+
+    public void play(String name) {
+        if (name != null && !name.isEmpty()) {
+            if (musicExists(name)) {
+                stop();
+
+                getQueue().reset();
+
+                playClip(name);
+            } else {
+                log(name + " doesn't exist!");
+            }
+        }
+    }
+
+    public void addToQueueWeb(String name) {
+        if (name != null && !name.isEmpty()) {
+            if (musicExists(name)) {
+                addToQueue(name);
+            } else {
+                log(name + " doesn't exist!");
+            }
+        }
     }
 
     public void addToQueue(String name) {

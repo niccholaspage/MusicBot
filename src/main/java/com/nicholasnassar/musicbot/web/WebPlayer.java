@@ -17,66 +17,20 @@ public class WebPlayer {
 
         staticFileLocation("web");
 
+        webSocket("/play-status", WebSocketHandler.class);
+
         JadeTemplateEngine jade = new JadeTemplateEngine();
 
         Map<String, String> emptyMap = new HashMap<>();
 
         get("/", (req, res) -> new ModelAndView(emptyMap, "index"), jade);
 
-        post("/play", (req, res) -> {
-            String name = req.queryParams("name");
-
-            if (name != null && !name.isEmpty()) {
-                if (bot.musicExists(name)) {
-                    bot.stop();
-
-                    bot.getQueue().reset();
-
-                    bot.playClip(name);
-                } else {
-                    bot.log(name + " doesn't exist!");
-                }
-            }
-
-            return "";
-        });
-
-        post("/addtoqueue", (req, res) -> {
-            String name = req.queryParams("name");
-
-            if (name != null && !name.isEmpty()) {
-                if (bot.musicExists(name)) {
-                    bot.addToQueue(name);
-                } else {
-                    bot.log(name + " doesn't exist!");
-                }
-            }
-
-            return "";
-        });
-
-        get("/pause", (req, res) -> {
-            if (bot.isPlaying()) {
-                bot.pause();
-            } else {
-                bot.play();
-            }
-
-            return "";
-        });
-
-        get("/stop", (req, res) -> {
-            bot.stop();
-
-            return "";
-        });
-
-        get("/play-status", (req, res) -> {
+        /*get("/play-status", (req, res) -> {
             res.type("text/event-stream;charset=UTF-8");
             res.header("Cache-Control", "no-cache");
 
             return "retry: 1000\ndata: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
-        });
+        });*/
 
         get("/queue", (req, res) -> {
             res.type("text/event-stream;charset=UTF-8");
