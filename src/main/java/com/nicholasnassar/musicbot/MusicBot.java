@@ -4,6 +4,7 @@ import com.machinepublishers.jbrowserdriver.JBrowserDriver;
 import com.machinepublishers.jbrowserdriver.Settings;
 import com.machinepublishers.jbrowserdriver.Timezone;
 import com.nicholasnassar.musicbot.web.WebPlayer;
+import com.nicholasnassar.musicbot.web.WebSocketHandler;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -339,12 +340,16 @@ public class MusicBot {
 
         queue.addRequest(request);
 
+        WebSocketHandler.sendQueueUpdates();
+
         new Thread() {
             public void run() {
                 try {
                     Document document = Jsoup.connect(request.getNameOrURL()).get();
 
                     request.setTitle(fixTitle(document.title()));
+
+                    WebSocketHandler.sendQueueUpdates();
                 } catch (IOException e) {
                 }
             }
@@ -422,6 +427,8 @@ public class MusicBot {
         title = "Nothing";
 
         stopped = true;
+
+        WebSocketHandler.sendQueueUpdates();
     }
 
     public boolean isPlaying() {
@@ -455,6 +462,6 @@ public class MusicBot {
             title = title.substring(0, title.lastIndexOf("- "));
         }
 
-        return title;
+        return title.trim();
     }
 }

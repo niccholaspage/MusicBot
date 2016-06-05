@@ -8,6 +8,8 @@ import spark.template.jade.JadeTemplateEngine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static spark.Spark.*;
 
@@ -25,29 +27,14 @@ public class WebPlayer {
 
         get("/", (req, res) -> new ModelAndView(emptyMap, "index"), jade);
 
-        /*get("/play-status", (req, res) -> {
-            res.type("text/event-stream;charset=UTF-8");
-            res.header("Cache-Control", "no-cache");
+        Timer timer = new Timer();
 
-            return "retry: 1000\ndata: {\"" + "title" + "\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}\n\n";
-        });*/
-
-        get("/queue", (req, res) -> {
-            res.type("text/event-stream;charset=UTF-8");
-            res.header("Cache-Control", "no-cache");
-
-            String queue = "retry: 1000\ndata:";
-
-            if (bot.getQueue().getRequests().isEmpty()) {
-                queue += "Empty";
-            } else {
-                for (Request request : bot.getQueue().getRequests()) {
-                    queue += "<a href=\"" + request.getNameOrURL() + "\">" + request.getTitle() + "</a><br>";
-                }
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                WebSocketHandler.sendPlayingUpdates();
             }
-
-            return queue + "\n\n";
-        });
+        }, 0, 1000);
     }
 
     public void stop() {
