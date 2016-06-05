@@ -1,6 +1,5 @@
 package com.nicholasnassar.musicbot.web;
 
-import com.nicholasnassar.musicbot.MusicBot;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.jade.JadeTemplateEngine;
@@ -13,7 +12,7 @@ import java.util.TimerTask;
 import static spark.Spark.*;
 
 public class WebPlayer {
-    public WebPlayer(MusicBot bot, int port) throws Exception {
+    public WebPlayer(int port) throws Exception {
         port(port);
 
         staticFileLocation("/web");

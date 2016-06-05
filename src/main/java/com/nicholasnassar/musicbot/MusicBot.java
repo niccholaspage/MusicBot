@@ -133,7 +133,7 @@ public class MusicBot {
         WebPlayer webPlayer;
 
         try {
-            webPlayer = new WebPlayer(this, 7999);
+            webPlayer = new WebPlayer(7999);
         } catch (Exception e) {
             e.printStackTrace();
 
