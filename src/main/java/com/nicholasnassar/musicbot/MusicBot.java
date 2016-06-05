@@ -446,6 +446,8 @@ public class MusicBot {
 
         stopped = true;
 
+        WebSocketHandler.sendPlayingUpdates();
+
         WebSocketHandler.sendQueueUpdates();
     }
 
