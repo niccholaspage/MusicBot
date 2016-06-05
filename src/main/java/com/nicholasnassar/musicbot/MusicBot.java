@@ -149,7 +149,9 @@ public class MusicBot {
                         update();
                     }
 
-                    title = fixTitle(browser.getTitle());
+                    if (!stopped) {
+                        title = fixTitle(browser.getTitle());
+                    }
 
                     if (!autoplayFlipped) {
                         WebElement element = browser.findElement(By.id("autoplay-checkbox"));
