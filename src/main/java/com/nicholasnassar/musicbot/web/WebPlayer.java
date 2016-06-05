@@ -1,7 +1,6 @@
 package com.nicholasnassar.musicbot.web;
 
 import com.nicholasnassar.musicbot.MusicBot;
-import com.nicholasnassar.musicbot.Request;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.jade.JadeTemplateEngine;
