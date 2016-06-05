@@ -9,18 +9,20 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @WebSocket
 public class WebSocketHandler {
-    private static final Set<Session> sessions = new HashSet<>();
+    private static final List<Session> sessions = new CopyOnWriteArrayList<>();
 
     @OnWebSocketConnect
     public void onConnect(Session user) throws Exception {
-        sessions.add(user);
+        sendPlayingUpdate(user);
 
         sendQueue(user);
+
+        sessions.add(user);
     }
 
     @OnWebSocketClose
@@ -49,16 +51,18 @@ public class WebSocketHandler {
         }
     }
 
-    public static void sendPlayingUpdates() {
+    public static void sendPlayingUpdate(Session session) {
         MusicBot bot = MusicBot.bot;
 
-        sessions.stream().filter(Session::isOpen).forEach(session -> {
-            try {
-                session.getRemote().sendString("{\"title\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        try {
+            session.getRemote().sendString("{\"title\": \"" + bot.getTitle() + "\", \"time\": \"" + bot.getTime() + "\"}");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendPlayingUpdates() {
+        sessions.stream().filter(Session::isOpen).forEach(WebSocketHandler::sendPlayingUpdate);
     }
 
     public static void sendQueueUpdates() {
