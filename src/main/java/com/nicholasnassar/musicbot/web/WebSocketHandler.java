@@ -62,11 +62,19 @@ public class WebSocketHandler {
     }
 
     public static void sendPlayingUpdates() {
-        sessions.stream().filter(Session::isOpen).forEach(WebSocketHandler::sendPlayingUpdate);
+        for (Session session : sessions) {
+            if (session.isOpen()) {
+                sendPlayingUpdate(session);
+            }
+        }
     }
 
     public static void sendQueueUpdates() {
-        sessions.stream().filter(Session::isOpen).forEach(WebSocketHandler::sendQueue);
+        for (Session session : sessions) {
+            if (session.isOpen()) {
+                sendQueue(session);
+            }
+        }
     }
 
     public static void sendQueue(Session session) {

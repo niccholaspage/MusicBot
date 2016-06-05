@@ -149,11 +149,13 @@ public class MusicBot {
                         update();
                     }
 
-                    if (browser.executeScript("return document.readyState").equals("complete")) {
-                        title = fixTitle(browser.getTitle());
+                    title = fixTitle(browser.getTitle());
 
-                        if (!autoplayFlipped) {
-                            browser.findElement(By.id("autoplay-checkbox")).click();
+                    if (!autoplayFlipped) {
+                        WebElement element = browser.findElement(By.id("autoplay-checkbox"));
+
+                        if (element != null) {
+                            element.click();
 
                             autoplayFlipped = true;
                         }
