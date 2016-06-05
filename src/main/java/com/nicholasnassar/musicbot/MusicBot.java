@@ -1,15 +1,14 @@
 package com.nicholasnassar.musicbot;
 
+import com.machinepublishers.jbrowserdriver.JBrowserDriver;
+import com.machinepublishers.jbrowserdriver.Settings;
+import com.machinepublishers.jbrowserdriver.Timezone;
 import com.nicholasnassar.musicbot.web.WebPlayer;
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.JSValue;
-import com.teamdev.jxbrowser.chromium.LoggerProvider;
-import com.teamdev.jxbrowser.chromium.dom.By;
-import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
-import com.teamdev.jxbrowser.chromium.dom.DOMElement;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +17,6 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 
 
 public class MusicBot {
@@ -32,7 +30,7 @@ public class MusicBot {
 
     private boolean stopped;
 
-    private Browser browser;
+    private JBrowserDriver browser;
 
     private boolean playingBrowser;
 
@@ -55,10 +53,6 @@ public class MusicBot {
     }
 
     public void start() {
-        LoggerProvider.getBrowserLogger().setLevel(Level.SEVERE);
-        LoggerProvider.getIPCLogger().setLevel(Level.SEVERE);
-        LoggerProvider.getChromiumProcessLogger().setLevel(Level.SEVERE);
-
         if (!musicFolder.exists() && !musicFolder.mkdir()) {
             log("Couldn't make music folder.");
 
@@ -69,7 +63,7 @@ public class MusicBot {
 
         Scanner scanner = new Scanner(System.in);
 
-        browser = new Browser();
+        browser = new JBrowserDriver(Settings.builder().timezone(Timezone.AMERICA_NEWYORK).headless(false).blockAds(true).build());
 
         File loginFile = new File("login.txt");
 
@@ -81,34 +75,30 @@ public class MusicBot {
 
                 String password = loginDetails[1];
 
-                Browser.invokeAndWaitFinishLoadingMainFrame(browser, value -> {
-                    value.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fapp%3Ddesktop%26hl%3Den%26feature%3Dsign_in_button%26action_handle_signin%3Dtrue%26next%3D%252F&hl=en&passive=true#identifier");
-                });
+                browser.get("https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fapp%3Ddesktop%26hl%3Den%26feature%3Dsign_in_button%26action_handle_signin%3Dtrue%26next%3D%252F&hl=en&passive=true#identifier");
 
-                DOMDocument document = browser.getDocument();
-
-                DOMElement element = document.findElement(By.name("Email"));
+                WebElement element = browser.findElement(By.name("Email"));
 
                 if (element != null) {
-                    element.setAttribute("value", username);
+                    element.sendKeys(username);
 
-                    element = document.findElement(By.name("signIn"));
+                    element = browser.findElement(By.name("signIn"));
 
                     if (element != null) {
                         element.click();
 
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
 
-                        element = document.findElement(By.name("Passwd"));
+                        element = browser.findElement(By.name("Passwd"));
 
                         if (element != null) {
-                            element.setAttribute("value", password);
+                            element.sendKeys(password);
 
-                            element = document.findElement(By.name("signIn"));
+                            element = browser.findElement(By.id("signIn"));
 
                             element.click();
                         }
@@ -129,10 +119,6 @@ public class MusicBot {
         frame.setSize(640, 480);
         frame.setVisible(true);*/
 
-        browser.addTitleListener(titleEvent -> {
-            title = fixTitle(browser.getTitle());
-        });
-
         WebPlayer webPlayer;
 
         try {
@@ -149,9 +135,8 @@ public class MusicBot {
             @Override
             public void run() {
                 if (playingBrowser) {
-                    browser.executeJavaScriptAndReturnValue("document.querySelector('.html5-video-player').b.allowEmbed = true;");
                     double currentTime = getCurrentTimeYT();
-                    if (currentTime != -1 && currentTime == getDurationTimeYT()) {
+                    if (currentTime != -1 && currentTime >= getDurationTimeYT()) {
                         update();
                     }
                 }
@@ -202,8 +187,6 @@ public class MusicBot {
             } else if (command.equalsIgnoreCase("quit")) {
                 log("MusicBot closing...");
 
-                System.exit(0);
-
                 break;
             }
         }
@@ -213,6 +196,8 @@ public class MusicBot {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        browser.close();
 
         timer.cancel();
 
@@ -230,13 +215,11 @@ public class MusicBot {
     }
 
     private double getTime(String function) {
-        JSValue value = browser.executeJavaScriptAndReturnValue("document.querySelector('.html5-video-player')." + function + "();");
-
-        if (value.isNull()) {
+        try {
+            return (double) browser.executeScript("return document.querySelector('.html5-video-player')." + function + "();");
+        } catch (Exception e) {
             return -1;
         }
-
-        return value.getNumberValue();
     }
 
     private String formatTime(double time) {
@@ -262,7 +245,7 @@ public class MusicBot {
     }
 
     private void playYoutubeLink(String url) {
-        browser.loadURL(url);
+        browser.get(url);
 
         playingBrowser = true;
     }
@@ -379,9 +362,7 @@ public class MusicBot {
     }
 
     private void togglePlayButton() {
-        DOMDocument document = browser.getDocument();
-
-        DOMElement element = document.findElement(By.className("ytp-play-button ytp-button"));
+        WebElement element = browser.findElement(By.className("ytp-play-button"));
 
         if (element != null) {
             element.click();
@@ -401,7 +382,7 @@ public class MusicBot {
                 log("Stopped!");
             }
         } else {
-            browser.loadHTML("<html><html>");
+            browser.get("about:blank");
 
             playingBrowser = false;
         }

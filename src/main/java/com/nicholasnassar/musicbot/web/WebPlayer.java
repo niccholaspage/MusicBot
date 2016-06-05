@@ -4,16 +4,24 @@ import com.nicholasnassar.musicbot.MusicBot;
 import com.nicholasnassar.musicbot.Request;
 import spark.ModelAndView;
 import spark.Spark;
-import spark.template.freemarker.FreeMarkerEngine;
+import spark.template.jade.JadeTemplateEngine;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static spark.Spark.*;
 
 public class WebPlayer {
     public WebPlayer(MusicBot bot, int port) throws Exception {
         port(port);
+
         staticFileLocation("web");
 
-        get("/", (req, res) -> new ModelAndView(null, "index.html"), new FreeMarkerEngine());
+        JadeTemplateEngine jade = new JadeTemplateEngine();
+
+        Map<String, String> emptyMap = new HashMap<>();
+
+        get("/", (req, res) -> new ModelAndView(emptyMap, "index"), jade);
 
         post("/play", (req, res) -> {
             String name = req.queryParams("name");

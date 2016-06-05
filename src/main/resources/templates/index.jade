@@ -1,0 +1,20 @@
+extends base.jade
+
+block content
+    p
+        div#url-container.mdl-textfield.mdl-js-textfield
+            input#url.mdl-textfield__input(type='text')
+            label.mdl-textfield__label(for='url') URL or File...
+    div.mdl-grid
+        div.mdl-layout-spacer
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Play
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Add to Queue
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Pause
+        button.mdl-cell.mdl-cell--1-col.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent Stop
+        div.mdl-layout-spacer
+    p#nowplaying Now Playing: Nothing
+    p#time - / -
+    p#queue
+        |Queue:
+        br
+        |Empty
